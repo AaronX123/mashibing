@@ -98,15 +98,22 @@ public class RBTree<T> {
             return;
         }
         TreeNode<T> uncle = xpp.left == xp ? xpp.right : xpp.left;
+        // 如果叔叔节点存在且为红色，则xp和uncle变黑xpp变红，同时考虑对更大一层的影响
+        if (uncle != null && uncle.red) {
+            xp.red = false;
+            uncle.red = false;
+            xpp.red = true;
+            reBalanceAfterInsert(xpp);
+            return;
+        }
+        // 如果叔叔节点为黑色且xp == xpp.left，则xp绕x左旋，完成后考虑影响
+        if (uncle != null) {
+            handleBlackUncle(x,xp,xpp);
+            reBalanceAfterInsert(xp);
+            return;
+        }
+
         if (inline(x,xp,xpp)) {
-            // 如果叔叔节点存在且为红色，则xp和uncle变黑xpp变红，同时考虑对更大一层的影响
-            if (uncle != null && uncle.red) {
-                xp.red = false;
-                uncle.red = false;
-                xpp.red = true;
-                reBalanceAfterInsert(xpp);
-                return;
-            }
             handleInline(x,xp,xpp);
             return;
         }
@@ -114,14 +121,17 @@ public class RBTree<T> {
             if (xpp.right == xp) {
                 xpp.right = x;
                 x.right = xp;
+                xp.left = null;
             } else {
                 xpp.left = x;
                 x.left = xp;
+                xp.right = null;
             }
             x.parent = xpp;
             xp.parent = x;
-            handleInline(xp,x,xpp);
+            reBalanceAfterInsert(xp);
         }
+
     }
 
     private boolean inline(TreeNode<T> x, TreeNode<T> xp, TreeNode<T> xpp) {
@@ -135,8 +145,7 @@ public class RBTree<T> {
     private void handleInline(TreeNode<T> x, TreeNode<T> xp, TreeNode<T> xpp) {
         if (xp.right == x) {
             if (xpp.parent != null) {
-                xpp.parent.right = xp;
-                xp.parent = xpp.parent;
+                handleXppp(xp,xpp);
             }
             xpp.parent = xp;
             if (xpp == root) {
@@ -150,8 +159,7 @@ public class RBTree<T> {
             xp.left = xpp;
         } else {
             if (xpp.parent != null) {
-                xpp.parent.left = xp;
-                xp.parent = xpp.parent;
+                handleXppp(xp,xpp);
             }
             xpp.parent = xp;
             if (xpp == root) {
@@ -166,6 +174,67 @@ public class RBTree<T> {
         }
         xp.red = false;
         xpp.red = true;
+    }
+
+    private void handleXppp(TreeNode<T> xp, TreeNode<T> xpp) {
+        if (xpp.parent.left == xpp) {
+            xpp.parent.left = xp;
+            xp.parent = xpp.parent;
+        } else {
+            xpp.parent.right = xp;
+            xp.parent = xpp.parent;
+        }
+    }
+
+    /**
+     * 如果是typeZ类型，则xpp绕x旋转，如果是/类型，则xpp绕xp旋转。
+     * @param x
+     * @param xp
+     * @param xpp
+     */
+    private void handleBlackUncle(TreeNode<T> x, TreeNode<T> xp, TreeNode<T> xpp) {
+        if (typeZ(x,xp,xpp)) {
+            if (xpp.left == xp) {
+                xpp.left = x;
+                xp.right = x.left;
+                if (x.left != null) {
+                    x.left.parent = xp;
+                }
+                x.left = xp;
+            } else {
+                xpp.right = x;
+                xp.left = x.right;
+                if (x.right != null) {
+                    x.right.parent = xp;
+                }
+                x.right = xp;
+            }
+            x.parent = xpp;
+            xp.parent = x;
+        } else {
+            if (xpp.left == xp) {
+                xpp.left = xp.right;
+                if (xp.right != null) {
+                    xp.right.parent = xpp;
+                }
+                xp.right = xpp;
+            } else {
+                xpp.right = xp.left;
+                if (xp.left != null) {
+                    xp.left.parent = xpp;
+                }
+                xp.left = xpp;
+            }
+            if (root == xpp) {
+                root = xp;
+            }
+            if (xpp.parent != null) {
+                handleXppp(xp,xpp);
+            }
+            xpp.parent = xp;
+            xpp.red = true;
+            xp.red = false;
+        }
     }
 
     public int size() {
