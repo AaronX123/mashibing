@@ -5,5 +5,5 @@ package java2.collection.list;
  * @version 1.0
  * @since 2020-10-22
  */
-public class ArrayList {
+public class _ArrayList {
 }

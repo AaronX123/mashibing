@@ -5,43 +5,29 @@ import java.util.*;
 public class no15 {
     // n²logn
     public List<List<Integer>> threeSum(int[] nums) {
-        if (nums == null || nums.length < 3) {
-            return new ArrayList<>();
-        }
+        if(nums == null || nums.length < 3) return new ArrayList<>();
         Arrays.sort(nums);
         List<List<Integer>> res = new ArrayList<>();
-        // 把下标存到value里
-        HashMap<Integer,Integer> map = new HashMap<>();
         for (int i = 0; i < nums.length; i++) {
-            map.put(nums[i], i);
-        }
-        for (int i = 0; i < nums.length - 2; i++) {
-            int first = nums[i];
-            for (int j = i + 1; j < nums.length - 1; j++) {
-                int second = nums[j];
-//                for (int k = j + 1; k < nums.length; k++) {
-//                    int third = nums[k];
-//                    if ((first + second + third) == 0) {
-//                        List<Integer> seq = new ArrayList<>();
-//                        seq.add(first);
-//                        seq.add(second);
-//                        seq.add(third);
-//                        if (isDuplicate(res,seq)) {
-//                            continue;
-//                        }
-//                        res.add(seq);
-//                    }
-//                }
-                int remain = 0 - first - second;
-                if (map.containsKey(remain) && map.get(remain) > j) {
+            // 跳过相同的元素，确保一定是唯一的解
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+            int bIdx = i + 1;
+            int cIdx = nums.length - 1;
+            int target = -nums[i];
+            for (; bIdx < nums.length; bIdx++) {
+                if (bIdx > i + 1 && nums[bIdx] == nums[bIdx - 1]) continue;
+                while (bIdx < cIdx && nums[bIdx] + nums[cIdx] > target) {
+                    cIdx--;
+                }
+                if (bIdx == cIdx) {
+                    break;
+                }
+                if (nums[bIdx] + nums[cIdx] == target) {
                     List<Integer> seq = new ArrayList<>();
-                        seq.add(first);
-                        seq.add(second);
-                        seq.add(remain);
-                        if (isDuplicate(res,seq)) {
-                            continue;
-                        }
-                        res.add(seq);
+                    seq.add(nums[i]);
+                    seq.add(nums[bIdx]);
+                    seq.add(nums[cIdx]);
+                    res.add(seq);
                 }
             }
         }
